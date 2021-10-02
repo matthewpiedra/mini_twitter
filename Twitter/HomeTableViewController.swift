@@ -24,14 +24,28 @@ class HomeTableViewController: UITableViewController {
         
         tableView.refreshControl = myRefreshControl
         
+        // dynamic cell height
+        self.tableView.rowHeight = UITableView.automaticDimension
+        // set the starting height point and let it adjust if the tweet content is more than it or less
+        self.tableView.estimatedRowHeight = 150
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        // first, let the original viewdidappear function do whatever it had to do
+        // then process with our custom actions
+        super.viewDidAppear(animated)
+        
+        // handle when the user composes a tweet and wants it to appear on the table view
+        loadTweets()
+    }
+    
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        print(1)
         if indexPath.row + 1 == tweets.count {
             loadMoreTweets()
         }
@@ -84,6 +98,7 @@ class HomeTableViewController: UITableViewController {
         self.dismiss(animated: true, completion: nil)
         
         UserDefaults.standard.set(false, forKey: "userLoggedIn")
+        UserDefaults.standard.set("", forKey: "userID")
     }
     
     // MARK: - Table view data source
@@ -117,7 +132,13 @@ class HomeTableViewController: UITableViewController {
         if let imageData = data {
             cell.profileImageView.image = UIImage(data: imageData)
         }
-
+        
+        cell.setFavorited(tweets[cellIndex]["favorited"] as! Bool)
+        cell.setRetweet(tweets[cellIndex]["retweeted"] as! Bool)
+        cell.tweetId = tweets[cellIndex]["id"] as! Int
+        cell.numberOfRetweets.text = String(describing: tweets[cellIndex]["retweet_count"] as! Int)
+        cell.numberOfLikes.text = String(describing: tweets[cellIndex]["favorite_count"] as! Int)
+        
         return cell
     }
 
